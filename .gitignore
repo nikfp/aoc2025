@@ -1,5 +1,6 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
+**/_build/
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
@@ -22,3 +23,9 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 day1-*.tar
 
+# Ignore erlang history in IEX
+**/.erl.history/
+
+# Ignore inputs
+/day**/test.txt
+/day**/input.txt
