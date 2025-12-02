@@ -4,10 +4,6 @@ Code.require_file("./lib/part2.ex", __DIR__)
 
 IO.puts("All code files required as expected")
 
-alias Parser
-alias Part1
-alias Part2
-
 "./test.txt"
 |> Parser.parse()
 |> Part1.solve()
