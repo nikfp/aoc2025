@@ -9,17 +9,17 @@ IO.puts("All code files required as expected")
 |> Part1.solve()
 |> IO.inspect(label: "Part 1 Test")
 
-# "./input.txt"
-# |> Parser.parse()
-# |> Part1.solve()
-# |> IO.inspect(label: "Part 1 Solve")
+"./input.txt"
+|> Parser.parse()
+|> Part1.solve()
+|> IO.inspect(label: "Part 1 Solve")
+
+"./test.txt"
+|> Parser.parse()
+|> Part2.solve()
+|> IO.inspect(label: "Part 2 Test")
 #
-# "./test.txt"
-# |> Parser.parse()
-# |> Part2.solve()
-# |> IO.inspect(label: "Part 2 Test")
-#
-# "./input.txt"
-# |> Parser.parse()
-# |> Part2.solve()
-# |> IO.inspect(label: "Part 2 Solve")
+"./input.txt"
+|> Parser.parse()
+|> Part2.solve()
+|> IO.inspect(label: "Part 2 Solve")
