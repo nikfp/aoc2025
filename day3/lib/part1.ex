@@ -2,7 +2,7 @@ defmodule Part1 do
   def solve(input) do
     # input arrives as a map
     # %{lines: [ [1, 2, 3, ...], [1, 2, 3, ...] ], line_length: integer}
-    %{lines: lines, line_length: line_length} = input
+    %{lines: lines} = input
 
     lines
     |> Enum.map(&process_line(&1))
@@ -29,8 +29,7 @@ defmodule Part1 do
         lv > rv or (lv == rv and li > ri)
       end)
 
-    [high_digit, low_digit] 
-    |> Enum.join()
-    |> String.to_integer()
+    [high_digit, low_digit]
+    |> Integer.undigits()
   end
 end

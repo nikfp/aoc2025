@@ -35,7 +35,6 @@ defmodule Part2 do
     list
     |> Enum.map(fn {d, _} -> d end)
     |> Enum.reverse()
-    |> Enum.join()
-    |> String.to_integer()
+    |> Integer.undigits()
   end
 end
