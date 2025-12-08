@@ -3,9 +3,8 @@ defmodule Parser do
     file
     |> File.read!()
     |> String.split("\n", trim: true)
-    |> Stream.map(fn el ->
+    |> Enum.map(fn el ->
       String.split(el, " ", trim: true)
     end)
-    |> Enum.reverse()
   end
 end

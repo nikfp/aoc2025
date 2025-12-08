@@ -1,6 +1,7 @@
 defmodule Part1 do
   def solve(input) do
     input
+    |> Enum.reverse()
     |> Enum.zip_reduce(0, fn [operator | numbers], acc ->
       case operator do
         "+" ->
