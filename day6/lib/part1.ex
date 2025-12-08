@@ -1,6 +1,9 @@
 defmodule Part1 do
   def solve(input) do
     input
+    |> Stream.map(fn el ->
+      String.split(el, " ", trim: true)
+    end)
     |> Enum.reverse()
     |> Enum.zip_reduce(0, fn [operator | numbers], acc ->
       case operator do
