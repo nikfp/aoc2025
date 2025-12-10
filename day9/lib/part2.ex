@@ -28,11 +28,46 @@ defmodule Part2 do
       end)
       |> Enum.sort(:desc)
 
+    Enum.map(sorted_coords, fn {size, {left, right}} = el ->
+      {el, rect_fits_in_bounds?(left, right, edge_list)}
+    end)
+    |> IO.inspect(label: "elements: ")
+
     # for each pair, get all 4 edges and check that every edge
     # doesn't cross out of bounds
-    Enum.find(sorted_coords, fn {_, {left, right}} ->
-      rect_fits_in_bounds?(left, right, edge_list)
-    end)
+
+    # Enum.find(sorted_coords, fn {_, {left, right}} ->
+    #   rect_fits_in_bounds?(left, right, edge_list)
+    # end)
+
+    binary_search_largest(sorted_coords, edge_list)
+    |> elem(0)
+  end
+
+  defp binary_search_largest(coords_list, edge_list) do
+    coords_length = Enum.count(coords_list) |> IO.inspect(label: "list length: ")
+
+    if coords_length == 1 do
+      List.first(coords_list)
+    else
+      split_pos = div(coords_length, 2) |> IO.inspect(label: "split position: ")
+
+      {high, low} = Enum.split(coords_list, split_pos) |> IO.inspect()
+
+      IO.gets("Hit enter to continue")
+
+      {_, {left, right}} = List.last(high) |> IO.inspect(label: "Pivot Element: ")
+
+      case rect_fits_in_bounds?(left, right, edge_list) |> IO.inspect(label: "value of check: ") do
+        true ->
+          IO.puts("Went with high list")
+          binary_search_largest(high, edge_list)
+
+        false ->
+          IO.puts("Went with low list")
+          binary_search_largest(low, edge_list)
+      end
+    end
   end
 
   defp rect_fits_in_bounds?({x1, y1}, {x2, y2}, edge_list) do
