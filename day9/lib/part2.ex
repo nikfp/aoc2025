@@ -1,18 +1,75 @@
 defmodule Part2 do
   def solve(input) do
-    # first, get a set of edge coordinates for the whole thing
-    input =
-      input
-      |> Enum.map(&List.to_tuple(&1))
+    # get x and y coords, sorted, then deduped, then compacted
+    x_coords_index_map = get_x_coords_map(input)
+    y_coords_index_map = get_y_coords_map(input)
 
-    edge_list =
+    # get input, descending by size, with coords
+    rectangle_sizes =
       input
-      |> Enum.chunk_every(2, 1, input)
-      |> Enum.map(fn [left, right] ->
-        get_edge_coords(left, right) |> MapSet.new()
+      |> get_sizes()
+      |> Enum.map(fn {[lx, ly], [rx, ry], size} ->
+        {
+          {
+            Map.get(x_coords_index_map, lx),
+            Map.get(y_coords_index_map, ly)
+          },
+          {
+            Map.get(x_coords_index_map, rx),
+            Map.get(y_coords_index_map, ry)
+          },
+          size
+        }
       end)
 
-    # then get the list from part 1, starting from the top
+    compacted_segment_coords =
+      input
+      |> Stream.chunk_every(2, 1, input)
+      |> Enum.map(fn [[lx, ly], [rx, ry]] ->
+        {
+          {
+            Map.get(x_coords_index_map, lx),
+            Map.get(y_coords_index_map, ly)
+          },
+          {
+            Map.get(x_coords_index_map, rx),
+            Map.get(y_coords_index_map, ry)
+          }
+        }
+      end)
+
+    perimeter_set =
+      compacted_segment_coords
+      |> Enum.reduce(MapSet.new(), fn {left, right}, set ->
+        get_edge_coords(left, right)
+        |> MapSet.new()
+        |> MapSet.union(set)
+      end)
+  end
+
+  defp get_x_coords_map(input) do
+    input
+    |> Stream.map(fn [x, _] -> x end)
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Stream.with_index()
+    |> Enum.reduce(%{}, fn {coord, index}, acc ->
+      Map.put(acc, coord, index)
+    end)
+  end
+
+  defp get_y_coords_map(input) do
+    input
+    |> Stream.map(fn [_, y] -> y end)
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Stream.with_index()
+    |> Enum.reduce(%{}, fn {coord, index}, acc ->
+      Map.put(acc, coord, index)
+    end)
+  end
+
+  defp get_sizes(input) do
     indexed_input =
       Enum.with_index(input)
 
@@ -22,91 +79,10 @@ defmodule Part2 do
           i1 < i2,
           do: {left, right}
 
-    sorted_coords =
-      Enum.map(pairs, fn {{lx, ly}, {rx, ry}} ->
-        {(abs(lx - rx) + 1) * (abs(ly - ry) + 1), {{lx, ly}, {rx, ry}}}
-      end)
-      |> Enum.sort(:desc)
-
-    Enum.map(sorted_coords, fn {size, {left, right}} = el ->
-      {el, rect_fits_in_bounds?(left, right, edge_list)}
+    Enum.map(pairs, fn {[lx, ly] = first, [rx, ry] = second} ->
+      {first, second, (abs(lx - rx) + 1) * (abs(ly - ry) + 1)}
     end)
-    |> IO.inspect(label: "elements: ")
-
-    # for each pair, get all 4 edges and check that every edge
-    # doesn't cross out of bounds
-
-    # Enum.find(sorted_coords, fn {_, {left, right}} ->
-    #   rect_fits_in_bounds?(left, right, edge_list)
-    # end)
-
-    binary_search_largest(sorted_coords, edge_list)
-    |> elem(0)
-  end
-
-  defp binary_search_largest(coords_list, edge_list) do
-    coords_length = Enum.count(coords_list) |> IO.inspect(label: "list length: ")
-
-    if coords_length == 1 do
-      List.first(coords_list)
-    else
-      split_pos = div(coords_length, 2) |> IO.inspect(label: "split position: ")
-
-      {high, low} = Enum.split(coords_list, split_pos) |> IO.inspect()
-
-      IO.gets("Hit enter to continue")
-
-      {_, {left, right}} = List.last(high) |> IO.inspect(label: "Pivot Element: ")
-
-      case rect_fits_in_bounds?(left, right, edge_list) |> IO.inspect(label: "value of check: ") do
-        true ->
-          IO.puts("Went with high list")
-          binary_search_largest(high, edge_list)
-
-        false ->
-          IO.puts("Went with low list")
-          binary_search_largest(low, edge_list)
-      end
-    end
-  end
-
-  defp rect_fits_in_bounds?({x1, y1}, {x2, y2}, edge_list) do
-    # get all 4 edges of each test rectangle and a set of the edges of the main polygon. 
-    [
-      {{x1, y1}, {x2, y1}},
-      {{x1, y1}, {x1, y2}},
-      {{x2, y2}, {x1, y2}},
-      {{x2, y2}, {x2, y1}}
-    ]
-    |> Enum.reduce_while(true, fn {left, right}, _acc ->
-      edge_set =
-        get_edge_coords(left, right)
-        |> MapSet.new()
-
-      edge_inner =
-        MapSet.difference(edge_set, MapSet.new([left, right]))
-
-      potential_crossed_edges =
-        edge_list
-        |> Enum.filter(fn edge ->
-          MapSet.intersection(edge, edge_inner) |> MapSet.size() > 0
-        end)
-
-      Enum.all?(potential_crossed_edges, fn el ->
-        MapSet.intersection(el, edge_set) |> MapSet.size() > 1
-      end)
-      |> case do
-        true -> {:cont, true}
-        false -> {:halt, false}
-      end
-    end)
-
-    # then switch to testing individual polygon edges. 
-    # If the test edge touches a polygon edge at exactly 1 point 
-    # and that point is not an endpoint of the test edge, that's a crossing, 
-    # which indicates the test edge runs outside the main polygon. 
-    # We can assume all corners are inside the polygon to start, 
-    # so if no edges test as crossing, the test rectangle is inside the polygon.
+    |> Enum.sort_by(fn {_, _, num} -> num end, :desc)
   end
 
   defp get_edge_coords({x1, y1}, {x2, y2}) do
